@@ -40,6 +40,66 @@ Linguagem para derivação de Tokens
 
 function parser(Lexico $lexico){
 
+    //implementação das regras da gramática para o parser;
+    $regras = [
+        1=> ['<S>', 1], // o número represeta a quantidade de reduces que deverão ser feitos, nesse caso, apenas 1
+        3  => ['<COMANDO>', 1],                         // <COMANDO> ::= <WHILE>
+        4  => ['<COMANDO>', 1],                         // <COMANDO> ::= <FOR>
+        5  => ['<COMANDO>', 2],                         // <COMANDO> ::= <EXP> PV
+        6  => ['<COMANDO>', 1],                         // <COMANDO> ::= <FUNC>
+        7  => ['<COMANDO>', 1],                         // <COMANDO> ::= <ATR>
+        8  => ['<COMANDO>', 1],                         // <COMANDO> ::= <PRINTF>
+        9  => ['<COMANDO>', 1],                         // <COMANDO> ::= <SCANF>
+        10 => ['<PRINTF>', 6],                          // PRINTF AP ASPAS ID ASPAS FP PV → corpo=7 tokens
+        11 => ['<SCANF>', 6],                           // SCANF AP ASPAS ID ASPAS FP PV → corpo=7 tokens
+        12 => ['<ATR>', 4],                             // ID IGUAL <VALOR> PV
+        13 => ['<VALOR>', 1],                           // <VALOR> ::= <EXP>
+        14 => ['<ATR_FOR>', 3],                         // ID IGUAL <VALOR>
+        15 => ['<LIST_PAM>', 1],                        // <LIST_PAM> ::= <PARAMETRO>
+        16 => ['<LIST_PAM>', 3],                        // <LIST_PAM> ::= <LIST_PAM> VIRGULA <PARAMETRO>
+        17 => ['<PARAMETROS>', 1],                      // <PARAMETROS> ::= <LIST_PAM>
+        18 => ['<PARAMETROS>', 0],                      // <PARAMETROS> ::= î
+        19 => ['<PARAMETRO>', 2],                       // <PARAMETRO> ::= <TIPO> ID
+        20 => ['<PARAMETRO>', 1],                       // <PARAMETRO> ::= ID
+        21 => ['<TIPO>', 1],                            // TIPO ::= INT
+        22 => ['<TIPO>', 1],                            // TIPO ::= BOOLEAN
+        23 => ['<TIPO>', 1],                            // TIPO ::= STRING
+        24 => ['<TIPO>', 1],                            // TIPO ::= FLOAT
+        25 => ['<FOR>', 9],                             // FOR AP <ATR_FOR> PV <LOG> PV <INCDEC> FP <BLOCO>
+        26 => ['<IF>', 5],                              // IF AP <LOG> FP <BLOCO> <ELSE> (contar corretamente)
+        27 => ['<WHILE>', 5],                           // WHILE AP <LOG> FP <BLOCO>
+        28 => ['<ELSE>', 2],                            // ELSE <BLOCO>
+        29 => ['<ELSE>', 0],                            // vazio
+        30 => ['<FUNC>', 5],                            // ID AP <PARAMETROS> FP PV
+        31 => ['<EXP>', 3],                             // <EXP> ::= <EXP> soma <EXP2>
+        32 => ['<EXP>', 1],                             // <EXP> ::= <EXP2>
+        33 => ['<EXP2>', 3],                            // <EXP2> ::= <EXP2> sub <EXP3>
+        34 => ['<EXP2>', 1],                            // <EXP2> ::= <EXP3>
+        35 => ['<EXP3>', 3],                            // <EXP3> ::= <EXP3> MULTIPLICACAO <EXP4>
+        36 => ['<EXP3>', 1],                            // <EXP3> ::= <EXP4>
+        37 => ['<EXP4>', 3],                            // <EXP4> ::= <EXP4> DIVISAO <EXP5>
+        38 => ['<EXP4>', 1],                            // <EXP4> ::= <EXP5>
+        39 => ['<EXP5>', 1],                            // <EXP5> ::= ID
+        40 => ['<EXP5>', 3],                            // <EXP5> ::= AP <EXP> FP
+        41 => ['<EXP5>', 1],                            // <EXP5> ::= CONST
+        42 => ['<INCDEC>', 2],                          // <INCDEC> ::= ID INC
+        43 => ['<INCDEC>', 1],                          // <INCDEC> ::= <DEC>
+        44 => ['<DEC>', 2],                             // <DEC> ::= ID DEC
+        45 => ['<LOG>', 3],                             // <LOG> ::= <LOG> MENOR <LOG2>
+        46 => ['<LOG>', 1],                             // <LOG> ::= <LOG2>
+        47 => ['<LOG2>', 3],                            // <LOG2> ::= <LOG2> MAIOR <LOG3>
+        48 => ['<LOG2>', 1],                            // <LOG2> ::= <LOG3>
+        49 => ['<LOG3>', 3],                            // <LOG3> ::= <LOG3> MENORIGUAL <LOG4>
+        50 => ['<LOG3>', 1],                            // <LOG3> ::= <LOG4>
+        51 => ['<LOG4>', 3],                            // <LOG4> ::= <LOG4> MAIORIGUAL <LOG5>
+        52 => ['<LOG4>', 1],                            // <LOG4> ::= <LOG5>
+        53 => ['<LOG5>', 1],                            // <LOG5> ::= ID
+        54 => ['<LOG5>', 1],                            // <LOG5> ::= CONST
+        55 => ['<SEQ_COMANDO>', 1],                     // <SEQ_COMANDO> ::= <COMANDO>
+        56 => ['<SEQ_COMANDO>', 2],                     // <SEQ_COMANDO> ::= <SEQ_COMANDO> <COMANDO>
+        57 => ['<BLOCO>', 3],   
+    ];
+
     $afd = array(
         0=>["ACTION"=>['ID' => 'S 2'], 'GOTO'=>['PROGRAMA' => 1]],
         1=> ['ACTION' => ['$'=> 'ACC'], 'GOTO'=> []],
@@ -129,26 +189,26 @@ function parser(Lexico $lexico){
         78=>['ACTION'=>['DEC'=>'S 77','ID'=>'S 78'], 'GOTO'=>['DADO'=>'91','INIC'=>'82']],
         79=>['ACTION'=>['AP'=>'R 47','CONST'=>'R 47','ID'=>'R 47','MULTIPLICACAO'=>'S 80','soma'=>'R 47','sub'=>'R 47'], 'GOTO'=>[]],
         
-       80=>['ACTION'=>['AP'=>'S 92'], 'GOTO'=>['LOG5'=>'62']],
-    81=>['ACTION'=>['AP'=>'S 93'], 'GOTO'=>[]],
-    82=>['ACTION'=>['AP'=>'S 17'], 'GOTO'=>['INIC'=>'94']],
-    83=>['ACTION'=>['PV'=>'S 95'], 'GOTO'=>[]],
-    84=>['ACTION'=>['AP'=>'S 39','CONST'=>'S 40','ID'=>'S 56'], 'GOTO'=>['ATR'=>'96','EXP'=>'71','EXP2'=>'32','EXP3'=>'36','EXP4'=>'37','EXP5'=>'38']],
-    85=>['ACTION'=>['PV'=>'S 97'], 'GOTO'=>[]],
-    86=>['ACTION'=>['AP'=>'R 12','CONST'=>'R 12','FIMBLOCO'=>'R 12','FOR'=>'R 12','ID'=>'R 12','IF'=>'R 12','PRINTF'=>'R 12','SCANF'=>'R 12','WHILE'=>'R 12'], 'GOTO'=>[]],
-    87=>['ACTION'=>['ASPAS'=>'S 98'], 'GOTO'=>[]],
-    88=>['ACTION'=>['CONST'=>'S 99'], 'GOTO'=>[]],
-    89=>['ACTION'=>['AP'=>'R 29','CONST'=>'R 29','ID'=>'R 29','PV'=>'R 29','soma'=>'R 29','sub'=>'R 29'], 'GOTO'=>['DEC'=>'100']],
-    90=>['ACTION'=>['AP'=>'R 45','CONST'=>'R 45','ID'=>'R 45','MULTIPLICACAO'=>'S 80','soma'=>'R 45','sub'=>'R 45'], 'GOTO'=>[]],
-    91=>['ACTION'=>['AP'=>'R 47','CONST'=>'R 47','ID'=>'R 47','soma'=>'R 47','sub'=>'R 47'], 'GOTO'=>['LOG4'=>'60']],
-    92=>['ACTION'=>['AP'=>'R 49','CONST'=>'R 49','ID'=>'R 49','soma'=>'R 49','sub'=>'R 49'], 'GOTO'=>['LOG3'=>'61']],
-    93=>['ACTION'=>['AP'=>'R 51','CONST'=>'R 51','ID'=>'R 51','soma'=>'R 51','sub'=>'R 51'], 'GOTO'=>[]],
-    94=>['ACTION'=>['AP'=>'R 27','CONST'=>'R 27','FIMBLOCO'=>'R 27','FOR'=>'R 27','ID'=>'R 27','IF'=>'R 27','PRINTF'=>'R 27','SCANF'=>'R 27','WHILE'=>'R 27'], 'GOTO'=>[]],
-    95=>['ACTION'=>['AP'=>'S 102','CONST'=>'S 78','ID'=>'S 78'], 'GOTO'=>['DADO'=>'79','INIC'=>'80']],
-    96=>['ACTION'=>['PV'=>'R 14'], 'GOTO'=>[]],
-    97=>['ACTION'=>['AP'=>'R 30','CONST'=>'R 30','FIMBLOCO'=>'R 30','FOR'=>'R 30','ID'=>'R 30','IF'=>'R 30','PRINTF'=>'R 30','SCANF'=>'R 30','WHILE'=>'R 30'], 'GOTO'=>[]],
-    98=>['ACTION'=>['AP'=>'S 103'], 'GOTO'=>[]],
-    99=>['ACTION'=>['AP'=>'S 104'], 'GOTO'=>[]],
+        80=>['ACTION'=>['AP'=>'S 92'], 'GOTO'=>['LOG5'=>'62']],
+        81=>['ACTION'=>['AP'=>'S 93'], 'GOTO'=>[]],
+        82=>['ACTION'=>['AP'=>'S 17'], 'GOTO'=>['INIC'=>'94']],
+        83=>['ACTION'=>['PV'=>'S 95'], 'GOTO'=>[]],
+        84=>['ACTION'=>['AP'=>'S 39','CONST'=>'S 40','ID'=>'S 56'], 'GOTO'=>['ATR'=>'96','EXP'=>'71','EXP2'=>'32','EXP3'=>'36','EXP4'=>'37','EXP5'=>'38']],
+        85=>['ACTION'=>['PV'=>'S 97'], 'GOTO'=>[]],
+        86=>['ACTION'=>['AP'=>'R 12','CONST'=>'R 12','FIMBLOCO'=>'R 12','FOR'=>'R 12','ID'=>'R 12','IF'=>'R 12','PRINTF'=>'R 12','SCANF'=>'R 12','WHILE'=>'R 12'], 'GOTO'=>[]],
+        87=>['ACTION'=>['ASPAS'=>'S 98'], 'GOTO'=>[]],
+        88=>['ACTION'=>['CONST'=>'S 99'], 'GOTO'=>[]],
+        89=>['ACTION'=>['AP'=>'R 29','CONST'=>'R 29','ID'=>'R 29','PV'=>'R 29','soma'=>'R 29','sub'=>'R 29'], 'GOTO'=>['DEC'=>'100']],
+        90=>['ACTION'=>['AP'=>'R 45','CONST'=>'R 45','ID'=>'R 45','MULTIPLICACAO'=>'S 80','soma'=>'R 45','sub'=>'R 45'], 'GOTO'=>[]],
+        91=>['ACTION'=>['AP'=>'R 47','CONST'=>'R 47','ID'=>'R 47','soma'=>'R 47','sub'=>'R 47'], 'GOTO'=>['LOG4'=>'60']],
+        92=>['ACTION'=>['AP'=>'R 49','CONST'=>'R 49','ID'=>'R 49','soma'=>'R 49','sub'=>'R 49'], 'GOTO'=>['LOG3'=>'61']],
+        93=>['ACTION'=>['AP'=>'R 51','CONST'=>'R 51','ID'=>'R 51','soma'=>'R 51','sub'=>'R 51'], 'GOTO'=>[]],
+        94=>['ACTION'=>['AP'=>'R 27','CONST'=>'R 27','FIMBLOCO'=>'R 27','FOR'=>'R 27','ID'=>'R 27','IF'=>'R 27','PRINTF'=>'R 27','SCANF'=>'R 27','WHILE'=>'R 27'], 'GOTO'=>[]],
+        95=>['ACTION'=>['AP'=>'S 102','CONST'=>'S 78','ID'=>'S 78'], 'GOTO'=>['DADO'=>'79','INIC'=>'80']],
+        96=>['ACTION'=>['PV'=>'R 14'], 'GOTO'=>[]],
+        97=>['ACTION'=>['AP'=>'R 30','CONST'=>'R 30','FIMBLOCO'=>'R 30','FOR'=>'R 30','ID'=>'R 30','IF'=>'R 30','PRINTF'=>'R 30','SCANF'=>'R 30','WHILE'=>'R 30'], 'GOTO'=>[]],
+        98=>['ACTION'=>['AP'=>'S 103'], 'GOTO'=>[]],
+        99=>['ACTION'=>['AP'=>'S 104'], 'GOTO'=>[]],
 
        100=>['ACTION'=>['AP'=>'R 26','CONST'=>'R 26','FIMBLOCO'=>'R 26','FOR'=>'R 26','ID'=>'R 26','IF'=>'R 26','PRINTF'=>'R 26','SCANF'=>'R 26','WHILE'=>'R 26'], 'GOTO'=>[]],
     101=>['ACTION'=>['AP'=>'R 28','CONST'=>'R 28','FIMBLOCO'=>'R 28','FOR'=>'R 28','ID'=>'R 28','IF'=>'R 28','PRINTF'=>'R 28','SCANF'=>'R 28','WHILE'=>'R 28'], 'GOTO'=>[]],
@@ -168,35 +228,62 @@ function parser(Lexico $lexico){
     
     );
 
-     $pilha = array();
-    array_push($pilha,0);
-    while ($token = $lexico->nextToken()){
-        if (array_key_exists( $token->getToken(), $afd[end($pilha)]['ACTION']))
-            $move = $afd[end($pilha)]['ACTION'][$token->getToken()];
-        else 
+    $pilha = [0]; // pilha de estados
+    $token = $lexico->nextToken();
+
+    while (true) {
+        $estado = end($pilha);
+
+        if (!isset($afd[$estado]['ACTION'][$token->getToken()])) {
+            echo "Erro sintático no token: ".$token->getToken();
             return false;
-        $acao = explode(' ',$move);
-        switch($acao[0]){
-            case 'S': // Shift - Empilha e avança o ponteiro
-                array_push($pilha,$acao[1]);
+        }
+
+        $move = $afd[$estado]['ACTION'][$token->getToken()];
+        $acao = explode(' ', $move);
+
+        switch ($acao[0]) {
+            case 'S': 
+                array_push($pilha, intval($acao[1]));
+                $token = $lexico->nextToken();
                 break;
-            case 'R': // Reduce - Desempilha e Desvia (para indicar a redução)                                                                                                                                                                                                                                                                                                                                                                       
-                for ($j = 0; $j<$acao[1]; $j++)
+
+            case 'R': // Reduce
+                $numRegra = intval($acao[1]);
+                if (!isset($regras[$numRegra])) {
+                    echo "Erro: regra $numRegra não definida.";
+                    return false;
+                }
+
+                $lhs = $regras[$numRegra][0];  
+                $rhsSize = $regras[$numRegra][1]; 
+
+                for ($i=0; $i<$rhsSize; $i++) {
                     array_pop($pilha);
-                $desvio = $afd[end($pilha)]['GOTO'][$acao[2]][$token->getToken()];
-                array_push($pilha,$desvio);
-                $lexico->nextToken();
+                }
+
+                $estadoAtual = end($pilha);
+                if (!isset($afd[$estadoAtual]['GOTO'][$lhs])) {
+                    echo "Erro de GOTO na redução da regra $numRegra";
+                    return false;
+                }
+
+                $novoEstado = $afd[$estadoAtual]['GOTO'][$lhs];
+                array_push($pilha, $novoEstado);
+                // atenção: NÃO avança token aqui
                 break;
+
             case 'ACC': // Accept
-                echo 'Ok';
+                echo "Ok - Cadeia aceita!";
                 return true;
+
             default:
-                echo 'Erro';
+                echo "Erro";
                 return false;
         }
     }
-    return false;
 }
+
 
 
 
